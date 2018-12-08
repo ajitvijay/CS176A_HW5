@@ -1,8 +1,8 @@
 /*
     Hangman game server in C using sockets
 */
-//Vicki Chen
-//Ziheng Song
+//Ajit Vijayakumar
+//Shu Yang
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,11 +16,15 @@
 
 
 #define NUM_THREADS 5
-
+/*
 void *print_thread_id (void *id);
 int getRand();
 void checkGuess(char guess, char w[], char trivia[]);
-int checkWin(char trivia[]);
+int checkWin(char trivia[]);*/
+
+int inc=0;
+flag = 0;
+bool won = false;
 
 
 char * words[15];
@@ -30,7 +34,7 @@ int n_threads;
 
 int main(int argc, char* argv[])
 {
-    int socket_desc , client_sock , c , read_size;
+    int sockfd , client_sock , c , read_size;
     struct sockaddr_in server , client;
     char client_message[2000];
 
@@ -58,20 +62,20 @@ int main(int argc, char* argv[])
     pthread_t thread[NUM_THREADS];
 
     //Create socket
-    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
-    if (socket_desc == -1)
+    sockfd = socket(AF_INET , SOCK_STREAM , 0);
+    if (sockfd == -1)
     {
         printf("Could not create socket\n");
     }
     printf("Socket Created\n");
-
+    int port = htons(atoi(argv[2]));
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = inet_addr(argv[1]);
-    server.sin_port = htons(atoi(argv[2]));
+    server.sin_port = port;
 
     //Bind
-    if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
+    if( bind(sockfd,(struct sockaddr *)&server , sizeof(server)) < 0)
     {
         //print the error message
         printf("Bind failed. Error\n");
@@ -79,16 +83,16 @@ int main(int argc, char* argv[])
     }
     printf("Bind Done\n");
 
-	int count=1;
-	while(count>0){
+
+	while(1){
 
 		    //Listen
-		    listen(socket_desc , 1);
+		    listen(sockfd , 1);
 
 		    //Accept and incoming connection
-			if(n_threads <= 0){
+		/*	if(n_threads <= 0){
 		    printf("Waiting for incoming connections...\n");
-			}
+			}*/
 
 		    c = sizeof(struct sockaddr_in);
 
@@ -96,16 +100,16 @@ int main(int argc, char* argv[])
     //accept connection from an incoming client
 			if(n_threads <3)
 			{
-			    client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
+			    client_sock = accept(sockfd, (struct sockaddr )&client, (socklen_t)&c);
 
-			    if (client_sock < 0)
+			/*    if (client_sock < 0)
 			    {
 				printf("Accept Failed\n");
 				return 0;
 			    }
 			   	 printf("Connection Accepted\n");
 
-         strcpy(client_message,"Ready to start game? (y/n):");
+         strcpy(client_message,"Ready to start game? (y/n):");*/
 
 					//Send the message back to client
 					write(client_sock , client_message, strlen(client_message));
@@ -115,7 +119,7 @@ int main(int argc, char* argv[])
 
 				if(rid!=0)
 				{
-					printf("pthread_create() failed for Thread # %d",id);
+		//			printf("pthread_create() failed for Thread # %d",id);
 					return 0;
 				}
 
@@ -127,11 +131,11 @@ int main(int argc, char* argv[])
 
 			else
 			{
-				 client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
+				 client_sock = accept(sockfd, (struct sockaddr )&client, (socklen_t)&c);
 
 			    if (client_sock < 0)
 			    {
-				printf("Accept Failed\n");
+		//		printf("Accept Failed\n");
 				return 0;
 			    }
 
@@ -150,6 +154,54 @@ int main(int argc, char* argv[])
 		    //Receive a message from client
 
 		//count--;
+    recv(sockfd, buffer,1,0);
+    int rand = rand() % 15;
+    answer=words[rand];
+    char temp*[8];
+    for(int i = 0; answer.charAt(i)!='*'; i++){
+      if(answer.charAt(i)!= '0'){
+        temp.charAt(i)='_';
+      }
+    }
+    temp+='*';
+
+    strcat(answer, '*');
+cont:
+    recv(sockfd, buffer, 1, 0);
+    char guess = buffer;
+    bzero(&buffer, sizeof(buffer));
+    send(sockfd, temp, sizeof(temp)+1, 0);
+    send(sockfd, inc, 2, 0);
+    for(int i = 0; temp.charAt(i)!='*'; i++){
+    if(guess==answer.charAt(i)){
+      temp.charAt(i)=guess;
+      flag=1;
+    //  inc++;
+    }
+  }
+  if(flag==0){
+    inc++;
+  }
+  for(int i = 0; temp.charAt(i)!='*'; i++){
+    if(temp.charAt(i)!='_'){
+      won=true;
+    }
+  }
+    send(sockfd, won, sizoeof(won)+1, 0);
+    bzero(&result, sizeof(result));
+    recv(sockfd, result,sizeof(receive),0 )
+    if(result=="won"){
+      pthread_ext(NULL);
+      n_threads--;
+    }
+    else if (result=="lose"){
+      pthread_ext(NULL);
+      n_threads--;
+    }
+    else{
+      goto cont;
+    }
+
 
 	}
 
@@ -157,7 +209,7 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
+/*
 void *print_thread_id (void *id)
 {
 
@@ -252,3 +304,4 @@ int checkWin(char trivia[])
   }
     return check;
 }
+*/
